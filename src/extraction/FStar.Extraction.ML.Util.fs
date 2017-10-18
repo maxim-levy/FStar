@@ -56,6 +56,10 @@ let mlconst_of_const' (sctt : sconst) =
 
   | Const_string (s, _) -> MLC_String (s)
 
+  | Const_range_of
+  | Const_set_range_of ->
+    failwith "Unhandled constant: range_of/set_range_of"
+
   | Const_reify
   | Const_reflect _ ->
     failwith "Unhandled constant: reify/reflect"
@@ -64,25 +68,29 @@ let mlconst_of_const (p:Range.range) (c:sconst) =
     try mlconst_of_const' c
     with _ -> failwith (BU.format2 "(%s) Failed to translate constant %s " (Range.string_of_range p) (Print.const_to_string c))
 
+let mlexpr_of_range (r:Range.range) : mlexpr' =
+    let cint (i : int) : mlexpr =
+        MLC_Int (string_of_int i, None) |> MLE_Const |> with_ty ml_int_ty
+    in
+    let cstr (s : string) : mlexpr =
+        MLC_String s |> MLE_Const |> with_ty ml_string_ty
+    in
+    // This is not being fully faithful since it disregards
+    // the use_range, but I assume that's not too bad.
+    MLE_App (mk_range_mle, [Range.file_of_range r |> cstr;
+                            Range.start_of_range r |> Range.line_of_pos |> cint;
+                            Range.start_of_range r |> Range.col_of_pos  |> cint;
+                            Range.end_of_range r   |> Range.line_of_pos |> cint;
+                            Range.end_of_range r   |> Range.col_of_pos  |> cint;
+                            ])
+
 let mlexpr_of_const (p:Range.range) (c:sconst) : mlexpr' =
     (* Special case ranges, which can be extracted but not as constants.
      * Maybe a sign that there shouldn't really be a Const_range *)
     match c with
     | Const_range r ->
-        let cint (i : int) : mlexpr =
-            MLC_Int (string_of_int i, None) |> MLE_Const |> with_ty ml_int_ty
-        in
-        let cstr (s : string) : mlexpr =
-            MLC_String s |> MLE_Const |> with_ty ml_string_ty
-        in
-        // This is not being fully faithful since it disregards
-        // the use_range, but I assume that's not too bad.
-        MLE_App (mk_range_mle, [Range.file_of_range r |> cstr;
-                                Range.start_of_range r |> Range.line_of_pos |> cint;
-                                Range.start_of_range r |> Range.col_of_pos  |> cint;
-                                Range.end_of_range r   |> Range.line_of_pos |> cint;
-                                Range.end_of_range r   |> Range.col_of_pos  |> cint;
-                                ])
+        mlexpr_of_range r
+
     | _ ->
         MLE_Const (mlconst_of_const p c)
 

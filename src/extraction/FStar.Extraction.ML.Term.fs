@@ -882,6 +882,13 @@ and term_as_mlexpr' (g:env) (top:term) : (mlexpr * e_tag * mlty) =
             ml_bs (f, t) in
           with_ty tfun <| MLE_Fun(ml_bs, ml_body), f, tfun
 
+        | Tm_app({n=Tm_constant Const_range_of}, [(a1, _)]) ->
+          let ty = term_as_mlty g (tabbrev PC.range_lid) in
+          with_ty ty <| mlexpr_of_range a1.pos, E_PURE, ty
+
+        | Tm_app({n=Tm_constant Const_set_range_of}, [(a1, _); (a2, _)]) ->
+          term_as_mlexpr' g a1
+
         | Tm_app({n=Tm_constant (Const_reflect _)}, _) -> failwith "Unreachable? Tm_app Const_reflect"
 
         | Tm_app(head, [_; (v, _)]) when U.is_fstar_tactics_embed head && false ->

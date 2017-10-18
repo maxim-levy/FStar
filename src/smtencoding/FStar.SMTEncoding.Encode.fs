@@ -909,6 +909,12 @@ and encode_term (t:typ) (env:env_t) : (term         (* encoding of t, expects t 
             let v2, decls2 = encode_term v2 env in
             mk_LexCons v1 v2, decls1@decls2
 
+        | Tm_constant Const_range_of, [(arg, _)] ->
+            encode_term (U.exp_unit) env // TODO: completely bogus
+
+        | Tm_constant Const_set_range_of, [(rng, _); (arg, _)] ->
+            encode_term arg env
+
         | Tm_constant Const_reify, _ (* (_::_::_) *) ->
             let e0 = TcUtil.reify_body_with_arg env.tcenv head (List.hd args_e) in
             if Env.debug env.tcenv <| Options.Other "SMTEncodingReify"
