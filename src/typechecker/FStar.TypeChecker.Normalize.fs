@@ -1170,9 +1170,11 @@ let rec norm : cfg -> env -> stack -> term -> term =
           | Tm_arrow(bs, c) ->
             if List.contains Weak cfg.steps
             then rebuild cfg env stack (closure_as_term cfg env t)
-            else let bs, c = open_comp bs c in
+            else let t0 = t in
+                 let bs, c = open_comp bs c in
                  let c = norm_comp cfg (bs |> List.fold_left (fun env _ -> dummy::env) env) c in
                  let t = arrow (norm_binders cfg env bs) c in
+                 let t = { t with pos = t0.pos } in
                  rebuild cfg env stack t
 
           | Tm_ascribed(t1, (tc, tacopt), l) ->
@@ -1182,6 +1184,7 @@ let rec norm : cfg -> env -> stack -> term -> term =
               | App (_, {n=Tm_constant FC.Const_reify}, _, _) :: _
               | MemoLazy _ :: _ ->
                 log cfg  (fun () -> BU.print_string "+++ Dropping ascription \n");
+                let t1 = { t1 with pos = t.pos } in
                 norm cfg env stack t1 //ascriptions should not block reduction
               | _ ->
                 (* Drops stack *)
@@ -1192,7 +1195,8 @@ let rec norm : cfg -> env -> stack -> term -> term =
                     | Inl t -> Inl (norm cfg env [] t)
                     | Inr c -> Inr (norm_comp cfg env c) in
                 let tacopt = BU.map_opt tacopt (norm cfg env []) in
-                rebuild cfg env stack (mk (Tm_ascribed(U.unascribe t1, (tc, tacopt), l)) t.pos)
+                let t1 = { U.unascribe t1 with pos = t1.pos } in
+                rebuild cfg env stack (mk (Tm_ascribed(t1, (tc, tacopt), l)) t.pos)
             end
 
           | Tm_match(head, branches) ->
@@ -1408,9 +1412,6 @@ let rec norm : cfg -> env -> stack -> term -> term =
                         (* resulting application is reified again                                     *)
                         (* ****************************************************************************)
 
-
-                        let ed = Env.get_effect_decl cfg.tcenv m in
-                        let _, bind_repr = ed.bind_repr in
 
                         (* [maybe_unfold_action head] test whether [head] is an action and tries to unfold it if it is *)
                         let maybe_unfold_action head : term * option<bool> =

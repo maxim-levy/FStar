@@ -353,7 +353,7 @@ and tc_maybe_toplevel_term env (e:term) : term                  (* type-checked 
   | Tm_meta(e, Meta_monadic _) ->
     (* KM : This case should not happen when typechecking once but is it really *)
     (* okay to just drop the annotation ? And what about Meta_monadic_lift then ? *)
-    tc_term env e
+    tc_term env { e with pos = top.pos }
 
   | Tm_meta(e, m) ->
     let e, c, g = tc_term env e in
