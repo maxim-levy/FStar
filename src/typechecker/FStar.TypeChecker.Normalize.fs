@@ -748,24 +748,26 @@ let reduce_primops cfg env stack tm =
            end
 
          | Tm_constant Const_range_of when not cfg.strong ->
-           log_primops cfg (fun () -> BU.print1 "primop: reducing <%s>\n"
-                                        (Print.term_to_string tm));
-           begin match args with
+           let t = match args with
            | [(a1, _)] -> (EMB.embed_range tm.pos a1.pos)
            | _ -> tm
-           end
+           in
+           log_primops cfg (fun () -> BU.print2 "primop: reducing <%s> to <%s>\n"
+                                        (Print.term_to_string tm) (Print.term_to_string t));
+           t
 
          | Tm_constant Const_set_range_of when not cfg.strong ->
-           log_primops cfg (fun () -> BU.print1 "primop: reducing <%s>\n"
-                                        (Print.term_to_string tm));
-           begin match args with
+           let t = match args with
            | [(a1, _); (a2, _)] ->
                 begin match EMB.unembed_range a2 with
                 | Some r -> ({ a1 with pos = r })
                 | None -> tm
                 end
            | _ -> tm
-           end
+           in
+           log_primops cfg (fun () -> BU.print2 "primop: reducing <%s> to <%s>\n"
+                                        (Print.term_to_string tm) (Print.term_to_string t));
+           t
 
          | _ -> tm
    end
@@ -912,7 +914,7 @@ let should_reify cfg stack = match stack with
 let rec norm : cfg -> env -> stack -> term -> term =
     fun cfg env stack t ->
         let t = compress t in
-        log cfg  (fun () -> BU.print4 ">>> %s\nNorm %s with with %s env elements top of the stack %s \n"
+        log cfg (fun () -> BU.print4 ">>> %s\nNorm %s with %s env elements; top of the stack %s \n"
                                         (Print.tag_of_term t)
                                         (Print.term_to_string t)
                                         (BU.string_of_int (List.length env))
@@ -1672,7 +1674,7 @@ and rebuild (cfg:cfg) (env:env) (stack:stack) (t:term) : term =
   (* Pre-condition: t is in either weak or strong normal form w.r.t env, depending on *)
   (* whether cfg.steps constains WHNF In either case, it has no free de Bruijn *)
   (* indices *)
-  log cfg  (fun () -> BU.print4 ">>> %s\Rebuild %s with %s env elements and top of the stack %s \n"
+  log cfg  (fun () -> BU.print4 ">>> %s\nRebuild %s with %s env elements; top of the stack %s \n"
                                         (Print.tag_of_term t)
                                         (Print.term_to_string t)
                                         (BU.string_of_int (List.length env))
