@@ -1359,17 +1359,23 @@ let rec norm : cfg -> env -> stack -> term -> term =
                             let lb = {lb with lbeff=PC.effect_PURE_lid; lbdef=e} in
                             norm cfg env (List.tl stack) (S.mk (Tm_let((false, [lb]), U.mk_reify body)) None head.pos)
                           | None ->
-                            if (match is_return body with Some ({n=Tm_bvar y}) -> S.bv_eq x y | _ -> false)
-                            then
-                              (* We are in the case where [head] = [bind e (fun x -> return x)] *)
-                              (* which can be optimised to just keeping normalizing [e] with a reify on the stack *)
-                              norm cfg env stack lb.lbdef
-                            else
+                            (* if (match is_return body with Some ({n=Tm_bvar y}) -> S.bv_eq x y | _ -> false) *)
+                            (* then *)
+                            (*   [> We are in the case where [head] = [bind e (fun x -> return x)] <] *)
+                            (*   [> which can be optimised to just keeping normalizing [e] with a reify on the stack <] *)
+                            (*   norm cfg env stack lb.lbdef *)
+                            (* else *)
                               (* TODO : optimize [bind (bind e1 e2) e3] into [bind e1 (bind e2 e3)] *)
                               (* Rewriting binds in that direction would be better for exception-like monad *)
                               (* since we wouldn't rematch on an already raised exception *)
+                              BU.print1 "GG body 0 = %s\n" (Print.term_to_string body);
+                              BU.print1 "GG body 0 def = %s\n" (Range.string_of_range body.pos);
+                              BU.print1 "GG body 0 use = %s\n" (Range.string_of_use_range body.pos);
                               let head = U.mk_reify <| lb.lbdef in
                               let body = U.mk_reify <| body in
+                              BU.print1 "GG body 1 = %s\n" (Print.term_to_string body);
+                              BU.print1 "GG body 1 def = %s\n" (Range.string_of_range body.pos);
+                              BU.print1 "GG body 1 use = %s\n" (Range.string_of_use_range body.pos);
                               (* TODO : Check that there is no sensible cflags to pass in the residual_comp *)
                               let body_rc = {
                                 residual_effect=m;
@@ -1385,9 +1391,14 @@ let rec norm : cfg -> env -> stack -> term -> term =
                                     None t.pos
                                 | _ -> failwith "NIY : Reification of indexed effects"
                               in
+                              BU.print1 "GG body 2 = %s\n" (Print.term_to_string body);
+                              BU.print1 "GG body 2 def = %s\n" (Range.string_of_range body.pos);
+                              BU.print1 "GG body 2 use = %s\n" (Range.string_of_use_range body.pos);
                               let reified = S.mk (Tm_app(bind_inst, [
                                   (* a, b *)
                                   as_arg lb.lbtyp; as_arg t;
+                                  (* range of body *)
+                                  as_arg (EMB.embed_range t.pos body.pos);
                                   (* wp_head, head--the term shouldn't depend on wp_head *)
                                   as_arg S.tun; as_arg head;
                                   (* wp_body, body--the term shouldn't depend on wp_body *)

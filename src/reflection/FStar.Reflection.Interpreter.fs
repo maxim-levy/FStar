@@ -62,7 +62,8 @@ let reflection_primops : list<N.primitive_step> =
 
         mk2 "__term_eq" term_eq unembed_term unembed_term embed_bool;
 
-        mk1 "__term_to_string" term_to_string unembed_term embed_string;
+        mk1 "__term_to_string" (fun t -> term_to_string t ^ " -- " ^ Range.string_of_range t.pos)
+                                    unembed_term embed_string;
         mk1 "__binders_of_env" binders_of_env unembed_env embed_binders;
         mk2 "__lookup_typ" lookup_typ unembed_env unembed_string_list embed_sigelt_view;
     ]

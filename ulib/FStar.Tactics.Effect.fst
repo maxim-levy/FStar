@@ -14,13 +14,12 @@ val __ret : a:Type -> x:a -> __tac a
 let __ret a x = fun (s:proofstate) -> Success(x, s)
 
 (* monadic bind *)
-let __bind (a:Type) (b:Type) (t1:__tac a) (t2:a -> __tac b) : __tac b =
+let __bind (a:Type) (b:Type) (rng:Prims.range) (t1:__tac a) (t2:a -> __tac b) : __tac b =
     fun p -> let r = t1 (incr_depth p) in
              match r with
              | Success(a, q)  ->
-                 (* We want range_of t2, but it does not work until we make range_of a constant *)
-                 let r = range_of q in
-                 let q = set_proofstate_range q (FStar.Range.prims_to_fstar_range r) in
+                 (* let rng = range_of t2 in *)
+                 let q = set_proofstate_range q (FStar.Range.prims_to_fstar_range rng) in
                  // Force evaluation of __tracepoint q
                  begin match tracepoint q with
                  | () -> t2 a (decr_depth q)
@@ -57,6 +56,7 @@ reifiable reflectable new_effect {
      ; return   = __ret
      ; __get    = __get
 }
+
 effect Tac (a:Type) = TAC a (fun i post -> forall j. post j)
 
 let lift_div_tac (a:Type) (wp:pure_wp a) : __tac_wp a =

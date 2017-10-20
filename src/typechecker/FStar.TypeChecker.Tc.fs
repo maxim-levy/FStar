@@ -287,7 +287,7 @@ let tc_eff_decl env0 (ed:Syntax.eff_decl) =
             | _ -> failwith "Unexpected repr type" in
 
         let bind_repr =
-            let r = S.lid_as_fv PC.range_0 Delta_constant None |> S.fv_to_tm in
+            let rng = S.gen_bv "rng" None (tabbrev PC.range_lid) in
             let b, wp_b = fresh_effect_signature () in
             let a_wp_b = U.arrow [S.null_binder (S.bv_to_name a)] (S.mk_Total wp_b) in
             let wp_f = S.gen_bv "wp_f" None wp_a in
@@ -296,7 +296,8 @@ let tc_eff_decl env0 (ed:Syntax.eff_decl) =
             let wp_g_x = mk_Tm_app (S.bv_to_name wp_g) [as_arg <| S.bv_to_name x_a] None Range.dummyRange in
             let res =
                 let wp = mk_Tm_app (Env.inst_tscheme bind_wp |> snd)
-                                   (List.map as_arg [r; S.bv_to_name a;
+                                   (List.map as_arg [S.bv_to_name rng;
+                                                     S.bv_to_name a;
                                                      S.bv_to_name b; S.bv_to_name wp_f;
                                                      S.bv_to_name wp_g])
                                    None Range.dummyRange in
@@ -304,6 +305,7 @@ let tc_eff_decl env0 (ed:Syntax.eff_decl) =
 
             let expected_k = U.arrow [S.mk_binder a;
                                          S.mk_binder b;
+                                         S.mk_binder rng;
                                          S.mk_binder wp_f;
                                          S.null_binder (mk_repr a (S.bv_to_name wp_f));
                                          S.mk_binder wp_g;
