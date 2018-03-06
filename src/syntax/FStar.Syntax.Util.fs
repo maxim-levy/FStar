@@ -1409,7 +1409,7 @@ let rec delta_qualifier t =
 
 let rec incr_delta_depth d =
     match d with
-    | Delta_equational -> d
+    | Delta_equational
     | Delta_constant -> Delta_defined_at_level 1
     | Delta_defined_at_level i -> Delta_defined_at_level (i + 1)
     | Delta_abstract d -> incr_delta_depth d
