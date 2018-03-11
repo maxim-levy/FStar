@@ -85,7 +85,7 @@ let rec free_names_and_uvs' tm use_cache : free_vars_and_fvars =
       | Tm_delayed _ -> failwith "Impossible"
 
       | Tm_name x ->
-        singleton_bv x
+        union (singleton_bv x) (free_names_and_uvars x.sort use_cache)
 
       | Tm_uvar (x, t) ->
         singleton_uv (x,t)
@@ -151,10 +151,10 @@ let rec free_names_and_uvs' tm use_cache : free_vars_and_fvars =
             List.fold_right (fun a acc -> free_names_and_uvars_args a acc use_cache) args u1
 
         | Meta_monadic(_, t') ->
-          union u1 (free_names_and_uvars t' use_cache)
+            union u1 (free_names_and_uvars t' use_cache)
 
         | Meta_monadic_lift(_, _, t') ->
-          union u1 (free_names_and_uvars t' use_cache)
+            union u1 (free_names_and_uvars t' use_cache)
 
         | Meta_quoted (qt, qi) ->
             if qi.qopen
