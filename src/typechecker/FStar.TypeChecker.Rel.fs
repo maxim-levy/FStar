@@ -67,7 +67,7 @@ let abstract_guard b g =
 
 let def_check_vars_in_set rng msg vset t =
     if Options.defensive () then begin
-        let s = Free.names t in
+        let s = Free.names_full t in
         if not (BU.set_is_empty <| BU.set_difference s vset)
         then Errors.log_issue rng
                     (Errors.Warning_Defensive,
