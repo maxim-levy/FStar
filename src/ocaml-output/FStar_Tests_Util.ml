@@ -187,15 +187,15 @@ let rec (term_eq' :
          (t',pats')) ->
           (((FStar_List.length pats) = (FStar_List.length pats')) &&
              (FStar_List.forall2
-                (fun uu____991  ->
-                   fun uu____992  ->
-                     match (uu____991, uu____992) with
-                     | ((uu____1041,uu____1042,e),(uu____1044,uu____1045,e'))
+                (fun uu____999  ->
+                   fun uu____1000  ->
+                     match (uu____999, uu____1000) with
+                     | ((uu____1049,uu____1050,e),(uu____1052,uu____1053,e'))
                          -> term_eq' e e') pats pats'))
             && (term_eq' t t')
       | (FStar_Syntax_Syntax.Tm_ascribed
-         (t12,(FStar_Util.Inl t22,uu____1097),uu____1098),FStar_Syntax_Syntax.Tm_ascribed
-         (s1,(FStar_Util.Inl s2,uu____1101),uu____1102)) ->
+         (t12,(FStar_Util.Inl t22,uu____1105),uu____1106),FStar_Syntax_Syntax.Tm_ascribed
+         (s1,(FStar_Util.Inl s2,uu____1109),uu____1110)) ->
           (term_eq' t12 s1) && (term_eq' t22 s2)
       | (FStar_Syntax_Syntax.Tm_let
          ((is_rec,lbs),t),FStar_Syntax_Syntax.Tm_let ((is_rec',lbs'),s)) when
@@ -211,29 +211,29 @@ let rec (term_eq' :
                           lb2.FStar_Syntax_Syntax.lbdef)) lbs lbs'))
             && (term_eq' t s)
       | (FStar_Syntax_Syntax.Tm_uvar
-         (u,uu____1234),FStar_Syntax_Syntax.Tm_uvar (u',uu____1236)) ->
+         (u,uu____1242),FStar_Syntax_Syntax.Tm_uvar (u',uu____1244)) ->
           FStar_Syntax_Unionfind.equiv u u'
-      | (FStar_Syntax_Syntax.Tm_meta (t12,uu____1286),uu____1287) ->
+      | (FStar_Syntax_Syntax.Tm_meta (t12,uu____1294),uu____1295) ->
           term_eq' t12 t21
-      | (uu____1292,FStar_Syntax_Syntax.Tm_meta (t22,uu____1294)) ->
+      | (uu____1300,FStar_Syntax_Syntax.Tm_meta (t22,uu____1302)) ->
           term_eq' t11 t22
-      | (FStar_Syntax_Syntax.Tm_delayed uu____1299,uu____1300) ->
-          let uu____1325 =
-            let uu____1326 = FStar_Syntax_Print.tag_of_term t11  in
-            let uu____1327 = FStar_Syntax_Print.tag_of_term t21  in
-            FStar_Util.format2 "Impossible: %s and %s" uu____1326 uu____1327
+      | (FStar_Syntax_Syntax.Tm_delayed uu____1307,uu____1308) ->
+          let uu____1333 =
+            let uu____1334 = FStar_Syntax_Print.tag_of_term t11  in
+            let uu____1335 = FStar_Syntax_Print.tag_of_term t21  in
+            FStar_Util.format2 "Impossible: %s and %s" uu____1334 uu____1335
              in
-          failwith uu____1325
-      | (uu____1328,FStar_Syntax_Syntax.Tm_delayed uu____1329) ->
-          let uu____1354 =
-            let uu____1355 = FStar_Syntax_Print.tag_of_term t11  in
-            let uu____1356 = FStar_Syntax_Print.tag_of_term t21  in
-            FStar_Util.format2 "Impossible: %s and %s" uu____1355 uu____1356
+          failwith uu____1333
+      | (uu____1336,FStar_Syntax_Syntax.Tm_delayed uu____1337) ->
+          let uu____1362 =
+            let uu____1363 = FStar_Syntax_Print.tag_of_term t11  in
+            let uu____1364 = FStar_Syntax_Print.tag_of_term t21  in
+            FStar_Util.format2 "Impossible: %s and %s" uu____1363 uu____1364
              in
-          failwith uu____1354
+          failwith uu____1362
       | (FStar_Syntax_Syntax.Tm_unknown ,FStar_Syntax_Syntax.Tm_unknown ) ->
           true
-      | uu____1357 -> false
+      | uu____1365 -> false
   
 let (term_eq :
   FStar_Syntax_Syntax.term -> FStar_Syntax_Syntax.term -> Prims.bool) =
@@ -242,10 +242,10 @@ let (term_eq :
       let b = term_eq' t1 t2  in
       if Prims.op_Negation b
       then
-        (let uu____1370 = FStar_Syntax_Print.term_to_string t1  in
-         let uu____1371 = FStar_Syntax_Print.term_to_string t2  in
+        (let uu____1378 = FStar_Syntax_Print.term_to_string t1  in
+         let uu____1379 = FStar_Syntax_Print.term_to_string t2  in
          FStar_Util.print2 ">>>>>>>>>>>Term %s is not equal to %s\n"
-           uu____1370 uu____1371)
+           uu____1378 uu____1379)
       else ();
       b
   
