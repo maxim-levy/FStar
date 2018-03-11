@@ -93,7 +93,7 @@ let rec free_names_and_uvs' tm use_cache : free_vars_and_fvars =
       | Tm_type u ->
         free_univs u
 
-      | Tm_bvar _ -> no_free_vars
+      | Tm_bvar bv -> free_names_and_uvars x.sort use_cache
       | Tm_fvar fv -> singleton_fvar fv
 
       | Tm_constant _
