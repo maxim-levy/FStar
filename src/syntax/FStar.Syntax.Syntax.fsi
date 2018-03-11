@@ -201,7 +201,7 @@ and uvars     = set<(uvar*typ)>
 and syntax<'a> = {
     n:'a;
     pos:Range.range;
-    vars:memo<free_vars>;
+    vars:memo<(free_vars * free_vars)>;
 }
 and bv = {
     ppname:ident;  //programmer-provided name for pretty-printing
