@@ -129,7 +129,7 @@ let rec free_names_and_uvs' tm use_cache : free_vars_and_fvars =
       | Tm_delayed _ -> failwith "Impossible"
 
       | Tm_name x ->
-        union (singleton_bv x) (type_level <| free_names_and_uvars x.sort use_cache)
+        singleton_bv x
 
       | Tm_uvar (x, t) ->
         singleton_uv (x,t)
@@ -137,7 +137,7 @@ let rec free_names_and_uvs' tm use_cache : free_vars_and_fvars =
       | Tm_type u ->
         free_univs u
 
-      | Tm_bvar bv -> type_level <| free_names_and_uvars bv.sort use_cache
+      | Tm_bvar bv -> no_free_vars
       | Tm_fvar fv -> singleton_fvar fv
 
       | Tm_constant _
