@@ -960,6 +960,7 @@ let tr_norm_step = function
     | EMB.Zeta ->    [Zeta]
     | EMB.Iota ->    [Iota]
     | EMB.Delta ->   [UnfoldUntil Delta_constant]
+    | EMB.Inlining -> [Inlining]
     | EMB.Simpl ->   [Simplify]
     | EMB.Weak ->    [Weak]
     | EMB.HNF  ->    [HNF]

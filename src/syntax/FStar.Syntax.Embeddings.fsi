@@ -74,6 +74,7 @@ type norm_step =
     | HNF
     | Primops
     | Delta
+    | Inlining
     | Zeta
     | Iota
     | UnfoldOnly of list<string>
@@ -84,6 +85,7 @@ val steps_Weak : term
 val steps_HNF  : term
 val steps_Primops : term
 val steps_Delta : term
+val steps_Inlining : term
 val steps_Zeta : term
 val steps_Iota : term
 val steps_UnfoldOnly : term

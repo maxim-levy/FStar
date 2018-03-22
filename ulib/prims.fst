@@ -358,6 +358,7 @@ noeq type norm_step =
   | HNF
   | Primops
   | Delta
+  | Inlining
   | Zeta
   | Iota
   | UnfoldAttr:#t:Type0 -> a:t -> norm_step
@@ -369,6 +370,7 @@ abstract let weak     : norm_step = Weak
 abstract let hnf      : norm_step = HNF
 abstract let primops  : norm_step = Primops
 abstract let delta    : norm_step = Delta
+abstract let inlining : norm_step = Inlining
 abstract let zeta     : norm_step = Zeta
 abstract let iota     : norm_step = Iota
 abstract let delta_only (s:list string) : norm_step = UnfoldOnly s

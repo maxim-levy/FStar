@@ -247,6 +247,7 @@ type norm_step =
     | HNF
     | Primops
     | Delta
+    | Inlining
     | Zeta
     | Iota
     | UnfoldOnly of list<string>
@@ -258,6 +259,7 @@ let steps_Weak       = tdataconstr PC.steps_weak
 let steps_HNF        = tdataconstr PC.steps_hnf
 let steps_Primops    = tdataconstr PC.steps_primops
 let steps_Delta      = tdataconstr PC.steps_delta
+let steps_Inlining   = tdataconstr PC.steps_inlining
 let steps_Zeta       = tdataconstr PC.steps_zeta
 let steps_Iota       = tdataconstr PC.steps_iota
 let steps_UnfoldOnly = tdataconstr PC.steps_unfoldonly
@@ -275,6 +277,8 @@ let embed_norm_step (rng:range) (n:norm_step) : term =
         steps_Primops
     | Delta ->
         steps_Delta
+    | Inlining ->
+        steps_Inlining
     | Zeta ->
         steps_Zeta
     | Iota ->
@@ -299,6 +303,8 @@ let __unembed_norm_step (w:bool) (t0:term) : option<norm_step> =
         Some Primops
     | Tm_fvar fv, [] when S.fv_eq_lid fv PC.steps_delta ->
         Some Delta
+    | Tm_fvar fv, [] when S.fv_eq_lid fv PC.steps_inlining  ->
+        Some Inlining
     | Tm_fvar fv, [] when S.fv_eq_lid fv PC.steps_zeta ->
         Some Zeta
     | Tm_fvar fv, [] when S.fv_eq_lid fv PC.steps_iota ->

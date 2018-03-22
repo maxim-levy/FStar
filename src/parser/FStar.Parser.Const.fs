@@ -236,6 +236,7 @@ let steps_primops    = pconst "primops"
 let steps_zeta       = pconst "zeta"
 let steps_iota       = pconst "iota"
 let steps_delta      = pconst "delta"
+let steps_inlining   = pconst "inlining"
 let steps_unfoldonly = pconst "delta_only"
 let steps_unfoldattr = pconst "delta_attr"
 
