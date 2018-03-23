@@ -1112,7 +1112,13 @@ let rec norm : cfg -> env -> stack -> term -> term =
                          | Eager_unfolding_only -> true
                          | Unfold l -> Common.delta_depth_greater_than fv.fv_delta l)
                  in
-                 let should_delta = should_delta && (
+                 let should_delta =
+                    if should_delta
+                    then not (Env.qninfo_is_let_rec qninfo) || cfg.steps.zeta
+                    else false
+                 in
+                 let should_delta =
+                    if not should_delta then false else (
                           let attrs = Env.attrs_of_qninfo qninfo in
                            // never unfold something marked tac_opaque when reducing tactics
                           (not cfg.steps.unfold_tac ||
