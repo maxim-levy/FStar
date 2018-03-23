@@ -199,6 +199,7 @@ val is_projector           : env -> lident -> bool
 val is_datacon             : env -> lident -> bool
 val is_record              : env -> lident -> bool
 val qninfo_is_action       : qninfo -> bool
+val qninfo_is_let_rec      : qninfo -> bool
 val is_action              : env -> lident -> bool
 val is_interpreted         : (env -> term -> bool)
 val is_irreducible         : env -> lident -> bool

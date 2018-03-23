@@ -742,6 +742,11 @@ let is_record env lid =
         BU.for_some (function RecordType _ | RecordConstructor _ -> true | _ -> false) quals
     | _ -> false
 
+let qninfo_is_let_rec (qninfo : qninfo) =
+    match qninfo with
+        | Some (Inr ({ sigel = Sig_let((r, _), _); sigquals = quals }, _), _) -> r
+        | _ -> false
+
 let qninfo_is_action (qninfo : qninfo) =
     match qninfo with
         | Some (Inr ({ sigel = Sig_let(_, _); sigquals = quals }, _), _) ->
