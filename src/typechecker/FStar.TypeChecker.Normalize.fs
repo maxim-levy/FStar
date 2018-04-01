@@ -242,6 +242,8 @@ type stack_elt =
  | Cfg            of cfg
  | Debug          of term * BU.time
  | AscribedBy     of env * ascription * option<I.lid> * Range.range
+ | RefinedBy      of bv * env * term * Range.range
+ | Refining       of bv * Range.range * env
 and stack = list<stack_elt>
 
 let head_of t = let hd, _ = U.head_and_args' t in hd
@@ -268,6 +270,8 @@ let stack_elt_to_string = function
     | Cfg _ -> "Cfg"
     | Debug (t, _) -> BU.format1 "Debug %s" (Print.term_to_string t)
     | AscribedBy _ -> "AscribedBy"
+    | RefinedBy _  -> "RefinedBy"
+    | Refining _   -> "Refining"
     // | _ -> "Match"
 
 let stack_to_string s =
@@ -1236,6 +1240,8 @@ let rec norm : cfg -> env -> stack -> term -> term =
                 | App _ :: _
                 | Abs _ :: _
                 | AscribedBy _ :: _
+                | RefinedBy  _ :: _
+                | Refining   _ :: _
                 | [] ->
                   if cfg.steps.weak //don't descend beneath a lambda if we're just doing weak reduction
                   then rebuild cfg env stack (closure_as_term cfg env t) //But, if the environment is non-empty, we need to substitute within the term
@@ -1260,19 +1266,9 @@ let rec norm : cfg -> env -> stack -> term -> term =
             log cfg  (fun () -> BU.print1 "\tPushed %s arguments\n" (string_of_int <| List.length args));
             norm cfg env stack head
 
-          | Tm_refine(x, f) -> //non tail-recursive; the alternative is to keep marks on the stack to rebuild the term ... but that's very heavy
-            if cfg.steps.weak
-            then match env, stack with
-                    | [], [] -> //TODO: Make this work in general!
-                      let t_x = norm cfg env [] x.sort in
-                      let t = mk (Tm_refine({x with sort=t_x}, f)) t.pos in
-                      rebuild cfg env stack t
-                    | _ -> rebuild cfg env stack (closure_as_term cfg env t)
-            else let t_x = norm cfg env [] x.sort in
-                 let closing, f = open_term [(x, None)] f in
-                 let f = norm cfg (dummy::env) [] f in
-                 let t = mk (Tm_refine({x with sort=t_x}, close closing f)) t.pos in
-                 rebuild cfg env stack t
+          | Tm_refine(x, f) ->
+            let x, f = SS.open_term_bv x f in
+            norm cfg env (RefinedBy (x, dummy::env, f, t.pos) :: stack) x.sort
 
           | Tm_arrow(bs, c) ->
             if cfg.steps.weak
@@ -2230,6 +2226,17 @@ and rebuild (cfg:cfg) (env:env) (stack:stack) (t:term) : term =
     let tacopt = BU.map_opt tacopt (norm cfg env' []) in
     let t = S.mk (Tm_ascribed (t, (tc, tacopt), l)) None r in
     rebuild cfg env stack t
+
+  | RefinedBy (x, env', f, r) :: stack ->
+    let x = { x with sort = t } in
+    if cfg.steps.weak
+    then let t = { U.refine x (closure_as_term cfg env' f) with pos = r } in
+         rebuild cfg env' stack t
+    else norm cfg env' (Refining (x, r, env) :: stack) f
+
+  | Refining (x, r, env') :: stack ->
+    let t = { U.refine x t with pos = r } in
+    rebuild cfg env' stack t
 
   | Match(env, branches, r) :: stack ->
     log cfg  (fun () -> BU.print1 "Rebuilding with match, scrutinee is %s ...\n" (Print.term_to_string t));
