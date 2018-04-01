@@ -231,17 +231,18 @@ let find_prim_step cfg fv =
 type branches = list<(pat * option<term> * term)>
 
 type stack_elt =
- | Arg      of closure * aqual * Range.range
- | UnivArgs of list<universe> * Range.range
- | MemoLazy of memo<(env * term)>
- | Match    of env * branches * Range.range
- | Abs      of env * binders * env * option<residual_comp> * Range.range //the second env is the first one extended with the binders, for reducing the option<lcomp>
- | App      of env * term * aqual * Range.range
- | Meta     of S.metadata * Range.range
- | Let      of env * binders * letbinding * Range.range
- | Cfg      of cfg
- | Debug    of term * BU.time
-type stack = list<stack_elt>
+ | Arg            of closure * aqual * Range.range
+ | UnivArgs       of list<universe> * Range.range
+ | MemoLazy       of memo<(env * term)>
+ | Match          of env * branches * Range.range
+ | Abs            of env * binders * env * option<residual_comp> * Range.range //the second env is the first one extended with the binders, for reducing the option<lcomp>
+ | App            of env * term * aqual * Range.range
+ | Meta           of S.metadata * Range.range
+ | Let            of env * binders * letbinding * Range.range
+ | Cfg            of cfg
+ | Debug          of term * BU.time
+ | AscribedBy     of env * ascription * option<I.lid> * Range.range
+and stack = list<stack_elt>
 
 let head_of t = let hd, _ = U.head_and_args' t in hd
 
@@ -266,6 +267,7 @@ let stack_elt_to_string = function
     | Let  _ -> "Let"
     | Cfg _ -> "Cfg"
     | Debug (t, _) -> BU.format1 "Debug %s" (Print.term_to_string t)
+    | AscribedBy _ -> "AscribedBy"
     // | _ -> "Match"
 
 let stack_to_string s =
@@ -1227,11 +1229,13 @@ let rec norm : cfg -> env -> stack -> term -> term =
                   log cfg  (fun () -> BU.print1 "\tSet memo %s\n" (Print.term_to_string t));
                   norm cfg env stack t
 
+                (* GM: Should we just slap a _ in here? *)
                 | Debug _::_
                 | Meta _::_
                 | Let _ :: _
                 | App _ :: _
                 | Abs _ :: _
+                | AscribedBy _ :: _
                 | [] ->
                   if cfg.steps.weak //don't descend beneath a lambda if we're just doing weak reduction
                   then rebuild cfg env stack (closure_as_term cfg env t) //But, if the environment is non-empty, we need to substitute within the term
@@ -1281,29 +1285,17 @@ let rec norm : cfg -> env -> stack -> term -> term =
           | Tm_ascribed(t1, (tc, tacopt), l) when cfg.steps.unascribe ->
             norm cfg env stack t1
 
-          | Tm_ascribed(t1, (tc, tacopt), l) ->
+          | Tm_ascribed(t1, asc, l) ->
             begin match stack with
-              | Match _ :: _
-              | Arg _ :: _
-              | App (_, {n=Tm_constant FC.Const_reify}, _, _) :: _
-              | MemoLazy _ :: _ ->
-                log cfg  (fun () -> BU.print_string "+++ Dropping ascription \n");
-                norm cfg env stack t1 //ascriptions should not block reduction
-              | _ ->
-                (* Drops stack *)
-                log cfg  (fun () -> BU.print_string "+++ Keeping ascription \n");
-                let t1 = norm cfg env [] t1 in
-                log cfg  (fun () -> BU.print_string "+++ Normalizing ascription \n");
-                let tc = match tc with
-                    | Inl t -> Inl (norm cfg env [] t)
-                    | Inr c -> Inr (norm_comp cfg env c) in
-                let tacopt = BU.map_opt tacopt (norm cfg env []) in
-                match stack with
-                | Cfg cfg :: stack ->
-                  let t = mk (Tm_ascribed(U.unascribe t1, (tc, tacopt), l)) t.pos in
-                  norm cfg env stack t
-                | _ ->
-                  rebuild cfg env stack (mk (Tm_ascribed(U.unascribe t1, (tc, tacopt), l)) t.pos)
+            | Match _ :: _
+            | Arg _ :: _
+            | App (_, {n=Tm_constant FC.Const_reify}, _, _) :: _
+            | MemoLazy _ :: _ ->
+              log cfg (fun () -> BU.print_string "+++ Dropping ascription\n");
+              norm cfg env stack t1 //ascriptions should not block reduction
+            | _ ->
+              log cfg (fun () -> BU.print_string "+++ Keeping ascription\n");
+              norm cfg env (AscribedBy (env, asc, l, t.pos) :: stack) t1
             end
 
           | Tm_match(head, branches) ->
@@ -2227,6 +2219,16 @@ and rebuild (cfg:cfg) (env:env) (stack:stack) (t:term) : term =
 
   | App(env, head, aq, r)::stack ->
     let t = S.extend_app head (t,aq) None r in
+    rebuild cfg env stack t
+
+  | AscribedBy (env', (tc, tacopt), l, r) :: stack ->
+    (* TODO: improve *)
+    let tc = match tc with
+             | Inl t -> Inl <| norm cfg env' [] t
+             | Inr c -> Inr <| norm_comp cfg env' c
+    in
+    let tacopt = BU.map_opt tacopt (norm cfg env' []) in
+    let t = S.mk (Tm_ascribed (t, (tc, tacopt), l)) None r in
     rebuild cfg env stack t
 
   | Match(env, branches, r) :: stack ->
