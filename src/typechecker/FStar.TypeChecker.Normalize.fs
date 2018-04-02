@@ -2280,12 +2280,15 @@ and rebuild (cfg:cfg) (env:env) (stack:stack) (t:term) : term =
     let t = { U.refine x t with pos = r } in
     rebuild cfg env' stack t
 
-  | Branches (env, _, branches, r) :: stack ->
-    let scrutinee = t in
-    log cfg (fun () ->
-        BU.print2 "match is irreducible: scrutinee=%s\nbranches=%s\n"
-              (Print.term_to_string scrutinee)
-              (branches |> List.map (fun (p, _, _) -> Print.pat_to_string p) |> String.concat "\n\t"));
+  | Branches (env, brs, [], r) :: stack ->
+    rebuild cfg env stack (mk (Tm_match(t, List.rev brs)) r)
+
+  | Branches (env, brs_n, br::brs, r) :: stack ->
+    (* let scrutinee = t in *)
+    (* log cfg (fun () -> *)
+    (*     BU.print2 "match is irreducible: scrutinee=%s\nbranches=%s\n" *)
+    (*           (Print.term_to_string scrutinee) *)
+    (*           (branches |> List.map (fun (p, _, _) -> Print.pat_to_string p) |> String.concat "\n\t")); *)
 
     // If either Weak or HNF, then don't descend into branch
     let whnf = cfg.steps.weak || cfg.steps.hnf in
@@ -2325,19 +2328,19 @@ and rebuild (cfg:cfg) (env:env) (stack:stack) (t:term) : term =
         {p with v=Pat_dot_term(x, t)}, env
     in
 
-    let branches = match env with
-      | [] when whnf -> branches //nothing to close over
-      | _ -> branches |> List.map (fun branch ->
-        let p, wopt, e = SS.open_branch branch in
+    let br = match env with
+      | [] when whnf -> br //nothing to close over
+      | _ ->
+        let p, wopt, e = SS.open_branch br in
         //It's important to normalize all the sorts within the pat!
         let p, env = norm_pat env p in
         let wopt = match wopt with
           | None -> None
           | Some w -> Some (norm_or_whnf env w) in
         let e = norm_or_whnf env e in
-        U.branch (p, wopt, e))
+        U.branch (p, wopt, e)
     in
-    rebuild cfg env stack (mk (Tm_match(scrutinee, branches)) r)
+    rebuild cfg env (Branches (env, br::brs_n, brs, r) :: stack) t
 
   | Match(env, branches, r) :: stack ->
     log cfg  (fun () -> BU.print1 "Rebuilding with match, scrutinee is %s ...\n" (Print.term_to_string t));
