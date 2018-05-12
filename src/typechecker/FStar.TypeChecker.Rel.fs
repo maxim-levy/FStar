@@ -760,6 +760,7 @@ let solve_prob' resolve_ok prob logical_guard uvis wl =
     let phi = match logical_guard with
       | None -> U.t_true
       | Some phi -> phi in
+    def_check_scoped "solve_prob'.phi" prob phi;
     let assign_solution xs uv phi =
         if Env.debug wl.tcenv <| Options.Other "Rel"
         then BU.print3 "Solving %s (%s) with formula %s\n"
@@ -768,7 +769,7 @@ let solve_prob' resolve_ok prob logical_guard uvis wl =
                             (Print.term_to_string phi);
         let phi = U.abs xs phi (Some (U.residual_tot U.ktype0)) in
         def_check_closed_in (p_loc prob) ("solve_prob'.sol." ^ string_of_int (p_pid prob))
-                            (List.map fst <| p_scope prob) phi;
+                            (List.map fst uv.ctx_uvar_binders) phi;
         U.set_uvar uv.ctx_uvar_head phi
     in
     let xs, uv = p_guard_uvar prob in
@@ -1494,6 +1495,7 @@ let rec solve (env:Env.env) (probs:worklist) : solution =
          end
 
 and solve_one_universe_eq (env:Env.env) (orig:prob) (u1:universe) (u2:universe) (wl:worklist) : solution =
+    def_check_prob "solve_one_universe_eq" orig;
     match solve_universe_eq (p_pid orig) wl u1 u2 with
     | USolved wl ->
       solve env (solve_prob orig None [] wl)
