@@ -97,6 +97,7 @@ let def_check_closed_in_env rng msg e t =
     if not (Options.defensive ()) then () else
     def_check_closed_in rng msg (Env.bound_vars e) t
 
+// TODO: element
 let def_check_guard_wf rng msg env g =
     match g.guard_f with
     | Trivial -> ()
@@ -354,8 +355,8 @@ let def_scope_wf msg rng r =
 
 let p_scope prob =
    let r = match prob with
-   | TProb p -> p.logical_guard_uvar.ctx_uvar_binders
-   | CProb p -> p.logical_guard_uvar.ctx_uvar_binders
+   | TProb p -> p.logical_guard_uvar.ctx_uvar_binders @ (match p_element prob with | None -> [] | Some x -> [S.mk_binder x])
+   | CProb p -> p.logical_guard_uvar.ctx_uvar_binders @ (match p_element prob with | None -> [] | Some x -> [S.mk_binder x])
    in
    def_scope_wf "p_scope" (p_loc prob) r;
    r
