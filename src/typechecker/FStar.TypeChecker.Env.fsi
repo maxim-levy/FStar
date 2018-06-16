@@ -94,6 +94,7 @@ type env = {
   failhard       :bool;                         (* don't try to carry on after a typechecking error *)
   nosynth        :bool;                         (* don't run synth tactics *)
   uvar_subtyping :bool;
+  weaken_comp_tys:bool;                         (* cf. weaken_result_typ and #1470 *)
   tc_term        :env -> term -> term*lcomp*guard_t; (* a callback to the type-checker; g |- e : M t wp *)
   type_of        :env -> term ->term*typ*guard_t; (* a callback to the type-checker; check_term g e = t ==> g |- e : Tot t *)
   universe_of    :env -> term -> universe;        (* a callback to the type-checker; g |- e : Tot (Type u) *)

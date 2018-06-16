@@ -938,10 +938,16 @@ let maybe_coerce_bool_to_type env (e:term) (lc:lcomp) (t:term) : term * lcomp =
 
 let weaken_result_typ env (e:term) (lc:lcomp) (t:typ) : term * lcomp * guard_t =
   if Env.debug env Options.High then
-    BU.print3 "weaken_result_typ e=(%s) lc=(%s) t=(%s)\n"
+    BU.print4 "weaken_result_typ weaken_comp_tys=(%s) e=(%s) lc=(%s) t=(%s)\n"
+            (string_of_bool env.weaken_comp_tys)
             (Print.term_to_string e)
             (Print.lcomp_to_string lc)
             (Print.term_to_string t);
+  let maybe_weaken lc =
+    if env.weaken_comp_tys
+    then U.set_result_typ_lc lc t
+    else lc
+  in
   let use_eq =
     env.use_eq ||
     (match Env.effect_decl_opt env lc.eff_name with
@@ -961,7 +967,9 @@ let weaken_result_typ env (e:term) (lc:lcomp) (t:typ) : term * lcomp * guard_t =
         )
     | Some g, apply_guard ->
       match guard_form g with
-        | Trivial -> e, Util.set_result_typ_lc lc t, g
+        | Trivial ->
+            let lc = maybe_weaken lc in
+            e, lc, g
 
         | NonTrivial f ->
           let g = {g with guard_f=Trivial} in
@@ -974,9 +982,9 @@ let weaken_result_typ env (e:term) (lc:lcomp) (t:typ) : term * lcomp * guard_t =
                   //try to normalize one more time, since more unification variables may be resolved now
                   let f = N.normalize [N.Beta; N.Eager_unfolding; N.Simplify; N.Primops] env f in
                   match (SS.compress f).n with
+                      // It's trivial
                       | Tm_abs(_, {n=Tm_fvar fv}, _) when S.fv_eq_lid fv C.true_lid ->
-                        //it's trivial
-                        let lc = {lc with res_typ=t} in //NS: what's the point of this?
+                        let lc = maybe_weaken lc in
                         lcomp_comp lc
 
                       | _ ->
@@ -1016,7 +1024,8 @@ let weaken_result_typ env (e:term) (lc:lcomp) (t:typ) : term * lcomp * guard_t =
                                                  | CPS -> [CPS] // KM : Not exactly sure if it is necessary
                                                  | _ -> [])
           in
-          let lc = S.mk_lcomp (norm_eff_name env lc.eff_name) t flags strengthen in
+          let lc = S.mk_lcomp (norm_eff_name env lc.eff_name) lc.res_typ flags strengthen in
+          let lc = maybe_weaken lc in
           let g = {g with guard_f=Trivial} in
           (e, lc, g)
 

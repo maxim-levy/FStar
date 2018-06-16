@@ -314,6 +314,17 @@ let guard_letrecs env actuals expected_c : list<(lbname*typ*univ_names)> =
 (* Main type-checker begins here                                                                            *)
 (************************************************************************************************************)
 let rec tc_term env e =
+    let env = { env with weaken_comp_tys = true } in
+    let r, ms = BU.record_time (fun () ->
+                    tc_maybe_toplevel_term ({env with top_level=false}) e) in
+    if Env.debug env Options.Medium then
+        BU.print4 "(%s) tc_term of %s (%s) took %sms\n" (Range.string_of_range <| Env.get_range env)
+                                                        (Print.term_to_string e)
+                                                        (Print.tag_of_term (SS.compress e))
+                                                        (string_of_int ms);
+    r
+and tc_term_no_weaken env e =
+    let env = { env with weaken_comp_tys = false } in
     let r, ms = BU.record_time (fun () ->
                     tc_maybe_toplevel_term ({env with top_level=false}) e) in
     if Env.debug env Options.Medium then
@@ -600,7 +611,8 @@ and tc_maybe_toplevel_term env (e:term) : term                  (* type-checked 
                        //         then TcUtil.maybe_assume_result_eq_pure_term env e c
                        //         else c in
                        e, c, g
-                  else check_application_args env head chead g_head args (Env.expected_typ env0) in
+                  else check_application_args env head chead g_head args (Env.expected_typ env0)
+    in
     if Env.debug env Options.Extreme
     then BU.print1 "Introduced {%s} implicits in application\n" (Rel.print_pending_implicits g);
     let e, c, g' = comp_check_expected_typ env0 e c in
@@ -1477,7 +1489,7 @@ and check_application_args env head chead ghead args expected_topt : term * lcom
             let env = Env.set_expected_typ env targ in
             let env = {env with use_eq=is_eq aqual} in
             if debug env Options.High then  BU.print3 "Checking arg (%s) %s at type %s\n" (Print.tag_of_term e) (Print.term_to_string e) (Print.term_to_string targ);
-            let e, c, g_e = tc_term env e in
+            let e, c, g_e = tc_term_no_weaken env e in
             let g = Env.conj_guard g_ex <| Env.conj_guard g g_e in
 //                if debug env Options.High then BU.print2 "Guard on this arg is %s;\naccumulated guard is %s\n" (guard_to_string env g_e) (guard_to_string env g);
             let arg = e, aq in
@@ -2352,6 +2364,7 @@ and tc_pats env pats =
 and tc_tot_or_gtot_term env e : term
                                 * lcomp
                                 * guard_t =
+  let env = { env with weaken_comp_tys = true } in
   let e, c, g = tc_maybe_toplevel_term env e in
   if U.is_tot_or_gtot_lcomp c
   then e, c, g
