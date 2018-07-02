@@ -39,6 +39,7 @@ val comp_to_string'       : DsEnv.env -> comp -> string
 val tag_of_term           : term -> string
 val lbname_to_string      : lbname -> string
 val pat_to_string         : pat -> string
+val branch_to_string      : Syntax.branch -> string
 val modul_to_string       : modul -> string
 val lcomp_to_string       : lcomp -> string
 val univ_names_to_string  : univ_names -> string
