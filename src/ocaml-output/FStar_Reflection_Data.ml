@@ -416,21 +416,21 @@ let (mk_inspect_pack_pair :
   fun s  ->
     let inspect_lid = fstar_refl_basic_lid (Prims.strcat "inspect" s)  in
     let pack_lid = fstar_refl_basic_lid (Prims.strcat "pack" s)  in
-    let inspect =
+    let inspect1 =
       let uu____1285 =
         FStar_Syntax_Syntax.fvar inspect_lid
           (FStar_Syntax_Syntax.Delta_constant_at_level (Prims.parse_int "1"))
           FStar_Pervasives_Native.None
          in
       { lid = inspect_lid; t = uu____1285 }  in
-    let pack =
+    let pack1 =
       let uu____1287 =
         FStar_Syntax_Syntax.fvar pack_lid
           (FStar_Syntax_Syntax.Delta_constant_at_level (Prims.parse_int "1"))
           FStar_Pervasives_Native.None
          in
       { lid = pack_lid; t = uu____1287 }  in
-    (inspect, pack)
+    (inspect1, pack1)
   
 let (uu___82 : (refl_constant,refl_constant) FStar_Pervasives_Native.tuple2)
   = mk_inspect_pack_pair "_ln" 

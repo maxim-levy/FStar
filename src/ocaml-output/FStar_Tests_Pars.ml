@@ -150,6 +150,8 @@ let (init_once : unit -> unit) =
                (uu___406_234.FStar_TypeChecker_Env.failhard);
              FStar_TypeChecker_Env.nosynth =
                (uu___406_234.FStar_TypeChecker_Env.nosynth);
+             FStar_TypeChecker_Env.nocoerce =
+               (uu___406_234.FStar_TypeChecker_Env.nocoerce);
              FStar_TypeChecker_Env.uvar_subtyping =
                (uu___406_234.FStar_TypeChecker_Env.uvar_subtyping);
              FStar_TypeChecker_Env.tc_term =
@@ -241,6 +243,8 @@ let (init_once : unit -> unit) =
                     (uu___407_252.FStar_TypeChecker_Env.failhard);
                   FStar_TypeChecker_Env.nosynth =
                     (uu___407_252.FStar_TypeChecker_Env.nosynth);
+                  FStar_TypeChecker_Env.nocoerce =
+                    (uu___407_252.FStar_TypeChecker_Env.nocoerce);
                   FStar_TypeChecker_Env.uvar_subtyping =
                     (uu___407_252.FStar_TypeChecker_Env.uvar_subtyping);
                   FStar_TypeChecker_Env.tc_term =
@@ -383,6 +387,8 @@ let (tc' :
           (uu___410_365.FStar_TypeChecker_Env.failhard);
         FStar_TypeChecker_Env.nosynth =
           (uu___410_365.FStar_TypeChecker_Env.nosynth);
+        FStar_TypeChecker_Env.nocoerce =
+          (uu___410_365.FStar_TypeChecker_Env.nocoerce);
         FStar_TypeChecker_Env.uvar_subtyping =
           (uu___410_365.FStar_TypeChecker_Env.uvar_subtyping);
         FStar_TypeChecker_Env.tc_term =

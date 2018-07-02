@@ -86,6 +86,8 @@ let (goal_env : goal -> FStar_TypeChecker_Env.env) =
         (uu___243_62.FStar_TypeChecker_Env.failhard);
       FStar_TypeChecker_Env.nosynth =
         (uu___243_62.FStar_TypeChecker_Env.nosynth);
+      FStar_TypeChecker_Env.nocoerce =
+        (uu___243_62.FStar_TypeChecker_Env.nocoerce);
       FStar_TypeChecker_Env.uvar_subtyping =
         (uu___243_62.FStar_TypeChecker_Env.uvar_subtyping);
       FStar_TypeChecker_Env.tc_term =

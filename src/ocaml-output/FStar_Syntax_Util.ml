@@ -4210,3 +4210,161 @@ and (unbound_variables_comp :
             ct.FStar_Syntax_Syntax.effect_args
            in
         FStar_List.append uu____15635 uu____15638
+
+let (mk_tuple_data_fv :
+  Prims.int -> FStar_Range.range -> FStar_Syntax_Syntax.fv) =
+  fun n1  ->
+    fun rng  ->
+      let uu____15683 = FStar_Parser_Const.mk_tuple_data_lid n1 rng  in
+      FStar_Syntax_Syntax.lid_as_fv uu____15683
+        FStar_Syntax_Syntax.delta_constant
+        (FStar_Pervasives_Native.Some FStar_Syntax_Syntax.Data_ctor)
+  
+let (mk_tuple_data :
+  FStar_Range.range ->
+    FStar_Syntax_Syntax.term Prims.list -> FStar_Syntax_Syntax.term)
+  =
+  fun rng  ->
+    fun xs  ->
+      let tupn =
+        let uu____15699 = mk_tuple_data_fv (FStar_List.length xs) rng  in
+        FStar_Syntax_Syntax.fv_to_tm uu____15699  in
+      let uu____15700 =
+        let uu____15707 =
+          let uu____15708 =
+            let uu____15725 = FStar_List.map FStar_Syntax_Syntax.as_arg xs
+               in
+            (tupn, uu____15725)  in
+          FStar_Syntax_Syntax.Tm_app uu____15708  in
+        FStar_Syntax_Syntax.mk uu____15707  in
+      uu____15700 FStar_Pervasives_Native.None rng
+  
+let rec (headify_branches :
+  FStar_Syntax_Syntax.branch Prims.list ->
+    FStar_Syntax_Syntax.branch Prims.list)
+  =
+  fun brs  ->
+    let brs0 = brs  in
+    match brs with
+    | [] -> []
+    | (pat,FStar_Pervasives_Native.Some w,e)::brs1 -> brs0
+    | (pat,FStar_Pervasives_Native.None ,e)::brs1 ->
+        let uu____15818 =
+          FStar_Syntax_Subst.open_branch
+            (pat, FStar_Pervasives_Native.None, e)
+           in
+        (match uu____15818 with
+         | (pat1,FStar_Pervasives_Native.None ,e1) ->
+             (match pat1.FStar_Syntax_Syntax.v with
+              | FStar_Syntax_Syntax.Pat_cons (hd1,args) ->
+                  let uu____15867 = FStar_List.unzip args  in
+                  (match uu____15867 with
+                   | (pats,imps) ->
+                       let rng = pat1.FStar_Syntax_Syntax.p  in
+                       let tun1 =
+                         FStar_Syntax_Syntax.mk
+                           FStar_Syntax_Syntax.Tm_unknown
+                           FStar_Pervasives_Native.None rng
+                          in
+                       let bvs =
+                         FStar_List.mapi
+                           (fun i  ->
+                              fun p  ->
+                                let uu____15912 =
+                                  let uu____15913 =
+                                    FStar_Util.string_of_int i  in
+                                  Prims.strcat "a" uu____15913  in
+                                FStar_Syntax_Syntax.gen_bv uu____15912
+                                  (FStar_Pervasives_Native.Some rng) tun1)
+                           pats
+                          in
+                       let pat' =
+                         let uu___126_15917 = pat1  in
+                         let uu____15920 =
+                           let uu____15921 =
+                             let uu____15934 =
+                               let uu____15943 =
+                                 FStar_List.map
+                                   (fun p'  ->
+                                      {
+                                        FStar_Syntax_Syntax.v =
+                                          (FStar_Syntax_Syntax.Pat_var p');
+                                        FStar_Syntax_Syntax.p = rng
+                                      }) bvs
+                                  in
+                               FStar_List.zip uu____15943 imps  in
+                             (hd1, uu____15934)  in
+                           FStar_Syntax_Syntax.Pat_cons uu____15921  in
+                         {
+                           FStar_Syntax_Syntax.v = uu____15920;
+                           FStar_Syntax_Syntax.p =
+                             (uu___126_15917.FStar_Syntax_Syntax.p)
+                         }  in
+                       let br1 =
+                         let uu____15963 =
+                           let uu____15966 =
+                             let uu____15967 =
+                               let uu____15980 =
+                                 mk_tuple_data_fv (FStar_List.length args)
+                                   rng
+                                  in
+                               let uu____15987 =
+                                 FStar_List.map (fun p  -> (p, false)) pats
+                                  in
+                               (uu____15980, uu____15987)  in
+                             FStar_Syntax_Syntax.Pat_cons uu____15967  in
+                           {
+                             FStar_Syntax_Syntax.v = uu____15966;
+                             FStar_Syntax_Syntax.p = rng
+                           }  in
+                         (uu____15963, FStar_Pervasives_Native.None, e1)  in
+                       let w =
+                         FStar_Syntax_Syntax.new_bv
+                           (FStar_Pervasives_Native.Some rng) tun1
+                          in
+                       let br2 =
+                         let uu____16030 =
+                           let uu____16033 =
+                             let uu____16040 =
+                               let uu____16041 =
+                                 let uu____16064 =
+                                   FStar_Syntax_Syntax.bv_to_name w  in
+                                 (uu____16064, brs1)  in
+                               FStar_Syntax_Syntax.Tm_match uu____16041  in
+                             FStar_Syntax_Syntax.mk uu____16040  in
+                           uu____16033 FStar_Pervasives_Native.None rng  in
+                         ({
+                            FStar_Syntax_Syntax.v =
+                              (FStar_Syntax_Syntax.Pat_var w);
+                            FStar_Syntax_Syntax.p = rng
+                          }, FStar_Pervasives_Native.None, uu____16030)
+                          in
+                       let submatch =
+                         let uu____16101 =
+                           let uu____16108 =
+                             let uu____16109 =
+                               let uu____16132 =
+                                 let uu____16135 =
+                                   FStar_List.map
+                                     FStar_Syntax_Syntax.bv_to_name bvs
+                                    in
+                                 mk_tuple_data rng uu____16135  in
+                               let uu____16138 =
+                                 let uu____16155 =
+                                   FStar_Syntax_Subst.close_branch br1  in
+                                 let uu____16170 =
+                                   let uu____16187 =
+                                     FStar_Syntax_Subst.close_branch br2  in
+                                   [uu____16187]  in
+                                 uu____16155 :: uu____16170  in
+                               (uu____16132, uu____16138)  in
+                             FStar_Syntax_Syntax.Tm_match uu____16109  in
+                           FStar_Syntax_Syntax.mk uu____16108  in
+                         uu____16101 FStar_Pervasives_Native.None rng  in
+                       let br' =
+                         (pat', FStar_Pervasives_Native.None, submatch)  in
+                       let br'1 = FStar_Syntax_Subst.close_branch br'  in
+                       let uu____16291 = headify_branches brs1  in br'1 ::
+                         uu____16291)
+              | uu____16294 -> brs0))
+  
